@@ -31,7 +31,8 @@ body {
     text-align: center;
     background: #0A1A2F;
     font-size: 16px;
-    margin: 0 23%;
+    margin: 0;
+    padding: 0 15px;
     color: #ffffff;
 }
 
@@ -119,14 +120,15 @@ button:hover {
 }
 
 #result {
-    text-align: left;
+    text-align: center;
     font-size: 18px;
-    margin-left: 34%;
-    margin-top: 10px;
+    margin: 10px auto;
+    width: 90%;
 }
 
-#total{
-    margin: 0 0 0 15%;
+#total {
+    display: block;
+    margin-top: 5px;
 }
 
 #flags {
@@ -165,4 +167,19 @@ ul{
     transform: scale(1.05);
     cursor: pointer;
     box-shadow:  0 6px 14px rgba(255, 255, 255, 0.35);
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 0 10px;
+    }
+
+    #result {
+        width: 100%;
+        font-size: 16px;
+    }
+
+    input {
+        width: 90%;
+    }
 }

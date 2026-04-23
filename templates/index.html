@@ -120,10 +120,11 @@ function predict() {
         }
 
         document.getElementById("result").innerHTML =
-            "🟡 Light Ends (C2 - C4): " + data.Light_Ends + "<br>" +
-            "🟢 Mid Range (C5 - C15): " + data.Mid_Range + "<br>" +
-            "🟤 Heavy Ends (C16 - C46): " + data.Heavy_Ends + "<br>" +
-            "<b id='total'>Total:</b> " + data.Total;
+            document.getElementById("result").innerHTML =
+            "🟡 Light Ends (C2 - C4): " + data.Light_Ends + "%<br>" +
+            "🟢 Mid Range (C5 - C15): " + data.Mid_Range + "%<br>" +
+            "🟤 Heavy Ends (C16 - C46): " + data.Heavy_Ends + "%<br>" +
+            "<b id='total'>Total:</b> " + data.Total + "%";
 
         if (data.flags && data.flags.length > 0) {
             document.getElementById("flags").innerHTML =
