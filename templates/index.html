@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crude Oil Predictor</title>
+    <!-- Changed /static/style.css to style.css. Change it later or  css will not work -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='crude.ico') }}">
+</head>
+
+<body>
+
+<!-- ================= HEADER ================= -->
+<div class="header">
+    <div class="title">
+        <img src="{{ url_for('static', filename='logo.jpeg') }}" alt="">
+        <h1><b>Emerald Energy Institute</b></h1>
+    </div>
+
+    <h2><b>Oluchi Maxwell Igboke</b></h2>
+    <p>MSc Student — Energy, Energy Economics, Management & Policy</p>
+    <p><b>Student ID:</b> G2025/EEI/MSC/FT/033</p>
+</div>
+
+<hr>
+
+<!-- ================= PROJECT DESCRIPTION ================= -->
+<div class="description">
+    <h3>About This System</h3>
+
+    <p>
+        This page showcases an AI-driven model that predicts the percentage composition of crude oil.
+    </p>
+
+    <p><b>This system allows you to:</b></p>
+    <p>
+        Generate predictions of crude oil composition, 
+        View oil distribution into key fractions(Light fractions, 
+        Mid fractions, Heavy-end fractions),
+        Obtain quantitative percentage breakdown of each fraction, 
+        Compare results with chromatographic-style analysis.
+        The output provides a clear, 
+        data-driven interpretation of crude oil composition for engineering and policy analysis.
+    </p>
+</div>
+
+<hr>
+
+<!-- ================= INPUT ================= -->
+<div class="form-container">
+    <h2>🛢️ Crude Oil Composition Prediction System</h2>
+    <h3>Input Properties</h3>
+
+    <div class="input-box">
+        <input type="number" id="density" placeholder="Density" step="any"> 
+        <img src="{{ url_for('static', filename='cubes-solid-full.svg') }}" alt="" class="icon">
+    </div>
+    
+    <div class="input-box">
+        <input type="number" id="api" placeholder="API" step="any">
+        <img src="{{ url_for('static', filename='droplet-solid-full.svg') }}" alt="" class="icon">
+    </div>
+
+    <div class="input-box">
+        <input type="number" id="viscosity" placeholder="Viscosity" step="any">
+        <img src="{{ url_for('static', filename='gas-pump-solid-full.svg') }}" alt="" class="icon">
+    </div>
+
+    <button onclick="predict()">Validate & Predict</button>
+</div>
+
+<!-- ================= OUTPUT ================= -->
+<h3>Results</h3>
+<p id="result"></p>
+
+<h3>Quality Flags</h3>
+<p id="flags" style="color:red;"></p>
+
+<!-- ================= ACTIONS ================= -->
+<div>
+    <button onclick="saveData()">Add to Database</button>
+    <button onclick="retrain()">Retrain Model</button>
+</div>
+
+<p id="status"></p>
+<p id="scores"></p>
+
+<!-- ================= JAVASCRIPT ================= -->
+<script>
+let currentPrediction = null;
+
+// ================= PREDICT =================
+function predict() {
+    const d = parseFloat(document.getElementById("density").value);
+    const a = parseFloat(document.getElementById("api").value);
+    const v = parseFloat(document.getElementById("viscosity").value);
+
+    if (isNaN(d) || isNaN(a) || isNaN(v)) {
+        document.getElementById("result").innerHTML = "Enter all values";
+        return;
+    }
+
+    document.getElementById("result").innerHTML = "Predicting...";
+    document.getElementById("flags").innerHTML = "";
+
+    fetch("/predict", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            Density: d,
+            API: a,
+            Viscosity: v
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if (data.error) {
+            document.getElementById("result").innerHTML = data.error;
+            return;
+        }
+
+        document.getElementById("result").innerHTML =
+            "🟡 Light Ends (C2 - C4): " + data.Light_Ends + "<br>" +
+            "🟢 Mid Range (C5 - C15): " + data.Mid_Range + "<br>" +
+            "🟤 Heavy Ends (C16 - C46): " + data.Heavy_Ends + "<br>" +
+            "<b id='total'>Total:</b> " + data.Total;
+
+        if (data.flags && data.flags.length > 0) {
+            document.getElementById("flags").innerHTML =
+                data.flags.join("<br>");
+        } else {
+            document.getElementById("flags").innerHTML =
+                "✅ Data within safe range";
+        }
+
+        currentPrediction = {
+            Density: d,
+            API: a,
+            Viscosity: v,
+            Light_Ends: data.Light_Ends,
+            Mid_Range: data.Mid_Range,
+            Heavy_Ends: data.Heavy_Ends
+        };
+    })
+    .catch(() => {
+        document.getElementById("result").innerHTML = "Request failed";
+    });
+}
+
+// ================= SAVE =================
+function saveData() {
+    if (!currentPrediction) {
+        document.getElementById("status").innerHTML =
+            "Run prediction first!";
+        return;
+    }
+
+    document.getElementById("status").innerHTML = "Saving...";
+
+    fetch("/add_data", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(currentPrediction)
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("status").innerHTML =
+            data.message || data.error;
+
+        if (data.flags && data.flags.length > 0) {
+            document.getElementById("status").innerHTML +=
+                "<br>⚠️ " + data.flags.join("<br>");
+        }
+    });
+}
+
+// ================= RETRAIN =================
+function retrain() {
+    document.getElementById("status").innerHTML = "Retraining...";
+    document.getElementById("scores").innerHTML = "";
+
+    fetch("/retrain", { method: "POST" })
+    .then(res => res.json())
+    .then(data => {
+
+        document.getElementById("status").innerHTML =
+            data.message || data.error;
+    });
+}
+</script>
+
+</body>
+</html>
