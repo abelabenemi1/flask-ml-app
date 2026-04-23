@@ -146,22 +146,17 @@ def retrain_system():
 
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
 
     model = Ridge(alpha=1.0)
     model.fit(X_train_scaled, y_train)
 
-    y_pred = model.predict(X_test_scaled)
-
-    return model, scaler
-
+    # ✅ SAVE MODEL (this is what your notebook does)
     joblib.dump({
         "model": model,
         "scaler": scaler
     }, MODEL_PATH)
 
-    return model, scaler, scores
-
+    return model, scaler
 # ================= RETRAIN ROUTE =================
 @app.route("/retrain", methods=["POST"])
 def retrain():
